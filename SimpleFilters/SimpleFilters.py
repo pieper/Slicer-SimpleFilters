@@ -20,7 +20,7 @@ class SimpleFilters:
     parent.title = "SimpleFilters" # TODO make this more human readable by adding spaces
     parent.categories = ["Filtering"]
     parent.dependencies = []
-    parent.contributors = ["Bradley Lowekamp (MSC/NLM)"] 
+    parent.contributors = ["Bradley Lowekamp (MSC/NLM)"]
     parent.helpText = """
     This is a meta module which contains interfaces for many Simple ITK image filters.
     """
@@ -67,7 +67,7 @@ class SimpleFiltersWidget:
     jsonFiles = glob(pathToJSON+"*.json")
 
     self.jsonFilters = []
-  
+
     for fname in jsonFiles:
       try:
         fp = file(fname, "r")
@@ -75,9 +75,9 @@ class SimpleFiltersWidget:
         self.jsonFilters.append(j)
       except:
         print "Error while reading $1", fname
-    
+
     self.filterParameters = None
-    
+
 
   def setup(self):
     # Instantiate and connect widgets ...
@@ -107,7 +107,7 @@ class SimpleFiltersWidget:
     reloadFormLayout.addWidget(self.reloadAndTestButton)
     self.reloadAndTestButton.connect('clicked()', self.onReloadAndTest)
 
-    
+
     #
     # Filters Area
     #
@@ -119,22 +119,27 @@ class SimpleFiltersWidget:
 
     #
     # filter selector
-    # 
+    #
     self.searchBox = ctk.ctkSearchBox()
     filtersFormLayout.addRow("Search", self.searchBox)
     self.searchBox.connect("textChanged(QString)", self.onSearch)
 
     self.filterSelector = qt.QComboBox()
     filtersFormLayout.addRow("Filter", self.filterSelector)
-    
+
     # add all the filters listed in the json files
     for j in self.jsonFilters:
       name = j["name"]
       # TODO: make the name pretty
       self.filterSelector.addItem(name)
 
+    self.filterHelpButton = qt.QPushButton("Help")
+    filtersFormLayout.addWidget(self.filterHelpButton)
+
     # connections
     self.filterSelector.connect('activated(int)', self.onFilterSelect)
+    self.filterHelpButton.connect('clicked()', self.onHelp)
+
 
 
     #
@@ -146,7 +151,7 @@ class SimpleFiltersWidget:
 
     # Layout within the dummy collapsible button
     parametersFormLayout = qt.QFormLayout(parametersCollapsibleButton)
-    
+
     self.filterParameters = FilterParameters(parametersCollapsibleButton)
 
     #
@@ -179,6 +184,9 @@ class SimpleFiltersWidget:
     self.filterParameters.destroy()
     self.filterParameters.create(json)
 
+  def onHelp(self):
+    qt.QDesktopServices.openUrl(qt.QUrl("https://www.google.com/search?q=itk+%s" % self.filterSelector.currentText))
+
   def cleanup(self):
     pass
 
@@ -198,7 +206,7 @@ class SimpleFiltersWidget:
       inputImages.append(img)
 
     img = self.filterParameters.filter.Execute(*inputImages)
-    
+
     imgNodeName = self.filterParameters.output.GetName()
     sitkUtils.PushToSlicer(img, imgNodeName, overwrite=True)
 
@@ -258,7 +266,7 @@ class SimpleFiltersWidget:
     except Exception, e:
       import traceback
       traceback.print_exc()
-      qt.QMessageBox.warning(slicer.util.mainWindow(), 
+      qt.QMessageBox.warning(slicer.util.mainWindow(),
           "Reload and Test", 'Exception!\n\n' + str(e) + "\n\nSee Python Console for Stack Trace")
 
 
@@ -267,8 +275,8 @@ class SimpleFiltersWidget:
 #
 
 class SimpleFiltersLogic:
-  """This class should implement all the actual 
-  computation done by your module.  The interface 
+  """This class should implement all the actual
+  computation done by your module.  The interface
   should be such that other python code can import
   this class and make use of the functionality without
   requiring an instance of the Widget
@@ -280,7 +288,7 @@ class SimpleFiltersLogic:
 
 
   def hasImageData(self,volumeNode):
-    """This is a dummy logic method that 
+    """This is a dummy logic method that
     returns true if the passed in volume
     node has valid image data
     """
@@ -331,12 +339,12 @@ class SimpleFiltersLogic:
     """
     Run the actual algorithm
     """
-    
+
     if self.thread.is_alive():
       print "already executing"
       return
 
-    
+
     self.thread = threading.Thread( target=lambda:self.thread_doit())
     self.thread.start()
 
@@ -396,7 +404,7 @@ class FilterParameters(object):
       # connect and verify parameters
       inputSelector.connect("nodeActivated(vtkMRMLNode*)", lambda node,i=n:self.onInputSelect(node,i))
 
-      
+
       # add to layout after connection
       parametersFormLayout.addRow(inputSelectorLabel, inputSelector)
 
@@ -421,7 +429,7 @@ class FilterParameters(object):
 
     for member in json["members"]:
       t = member["type"]
-    
+
       if "dim_vec" in member and int(member["dim_vec"]):
         w = self.createVectorWidget(member["name"],t)
       elif t in ["double", "float"]:
@@ -467,14 +475,14 @@ class FilterParameters(object):
 
     # add to layout after connection
     parametersFormLayout.addRow(outputSelectorLabel, outputSelector)
-    
+
     self.output = outputSelector.currentNode()
 
   def createVectorWidget(self,name,type):
     m = re.search(r"<([a-zA-Z ]+)>", type)
     if m:
       type = m.group(1)
-            
+
     w = ctk.ctkCoordinatesWidget()
     self.widgets.append(w)
 
@@ -492,7 +500,7 @@ class FilterParameters(object):
     return w
 
   def createIntWidget(self,name,default="0",type="int"):
-    
+
     w = qt.QSpinBox()
     self.widgets.append(w)
 
@@ -515,7 +523,7 @@ class FilterParameters(object):
     w.setValue(int(v))
     w.connect("valueChanged(int)", lambda val,name=name:self.onScalarChanged(name,val))
     return w
- 
+
   def createBoolWidget(self,name,default="false"):
     w = qt.QCheckBox()
     self.widgets.append(w)
@@ -523,7 +531,7 @@ class FilterParameters(object):
     w.setChecked(default.lower=="true")
 
     w.connect("stateChanged(int)", lambda val,name=name:self.onScalarChanged(name,bool(val)))
-      
+
     return w
 
   def createDoubleWidget(self,name,default="0.0f"):
@@ -546,7 +554,7 @@ class FilterParameters(object):
       widget.setToolTip(memberJSON["briefdescriptionSet"])
     elif "detaileddescriptionSet" in memberJSON:
       widget.setToolTip(memberJSON["detaileddescriptionSet"])
-        
+
     l = qt.QLabel(memberJSON["name"]+": ")
     self.widgets.append(l)
 
@@ -577,7 +585,7 @@ class FilterParameters(object):
       w.deleteLater()
       w.setParent(None)
     self.widgets = []
-  
+
 
 class SimpleFiltersTest(unittest.TestCase):
   """
