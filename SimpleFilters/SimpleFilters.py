@@ -109,10 +109,23 @@ class SimpleFiltersWidget:
 
     
     #
+    # Filters Area
+    #
+    filtersCollapsibleButton = ctk.ctkCollapsibleButton()
+    filtersCollapsibleButton.text = "Filters"
+    self.layout.addWidget(filtersCollapsibleButton)
+    # Layout within the dummy collapsible button
+    filtersFormLayout = qt.QFormLayout(filtersCollapsibleButton)
+
+    #
     # filter selector
     # 
+    self.searchBox = ctk.ctkSearchBox()
+    filtersFormLayout.addRow("Search", self.searchBox)
+    self.searchBox.connect("textChanged(QString)", self.onSearch)
+
     self.filterSelector = qt.QComboBox()
-    self.layout.addWidget(self.filterSelector)
+    filtersFormLayout.addRow("Filter", self.filterSelector)
     
     # add all the filters listed in the json files
     for j in self.jsonFilters:
@@ -149,6 +162,16 @@ class SimpleFiltersWidget:
 
     # Add vertical spacer
     self.layout.addStretch(1)
+
+  def onSearch(self, searchText):
+    # add all the filters listed in the json files
+    self.filterSelector.clear()
+    for j in self.jsonFilters:
+      name = j["name"]
+      # TODO: make the name pretty
+      if name.lower().find(searchText) != -1:
+        self.filterSelector.addItem(name)
+    #self.filterSelector.showPopup()
 
   def onFilterSelect(self, jsonIndex):
     json = self.jsonFilters[jsonIndex]
