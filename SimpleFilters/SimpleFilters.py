@@ -66,13 +66,13 @@ class SimpleFiltersWidget:
 
     jsonFiles = glob(pathToJSON+"*.json")
 
-    self.jsonFilters = []
+    self.jsonFiltersByName = {}
 
     for fname in jsonFiles:
       try:
         fp = file(fname, "r")
         j = json.load(fp,object_pairs_hook=OrderedDict)
-        self.jsonFilters.append(j)
+        self.jsonFiltersByName[j['name']] = j
       except:
         print "Error while reading $1", fname
 
@@ -128,8 +128,7 @@ class SimpleFiltersWidget:
     filtersFormLayout.addRow("Filter", self.filterSelector)
 
     # add all the filters listed in the json files
-    for j in self.jsonFilters:
-      name = j["name"]
+    for name in self.jsonFiltersByName.keys():
       # TODO: make the name pretty
       self.filterSelector.addItem(name)
 
@@ -171,15 +170,14 @@ class SimpleFiltersWidget:
   def onSearch(self, searchText):
     # add all the filters listed in the json files
     self.filterSelector.clear()
-    for j in self.jsonFilters:
-      name = j["name"]
+    for name in self.jsonFiltersByName.keys():
       # TODO: make the name pretty
-      if name.lower().find(searchText) != -1:
+      if name.lower().find(searchText.lower()) != -1:
         self.filterSelector.addItem(name)
-    #self.filterSelector.showPopup()
 
   def onFilterSelect(self, jsonIndex):
-    json = self.jsonFilters[jsonIndex]
+    filterName = self.filterSelector.currentText
+    json = self.jsonFiltersByName[filterName]
 
     self.filterParameters.destroy()
     self.filterParameters.create(json)
